@@ -253,7 +253,7 @@ model-viewer.sin-cotas .lineas, model-viewer.sin-cotas [slot^="hotspot-"] { disp
       <div class="carga" aria-hidden="true"><i id="carga"></i></div>
       <model-viewer id="visor" camera-controls touch-action="pan-y" interaction-prompt="auto" shadow-intensity="1" shadow-softness="0.75"
         environment-image="neutral" exposure="1.05" camera-orbit="20deg 58deg 140%" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 86deg 200%"
-        ar-modes="webxr scene-viewer quick-look" ar-scale="fixed" ar-placement="floor" xr-environment>
+        ar-modes="scene-viewer webxr quick-look" ar-scale="fixed" ar-placement="floor">
         <button slot="hotspot-c0" class="cota-punto" data-position="0 0 0" tabindex="-1" aria-hidden="true"></button>
         <button slot="hotspot-cw" class="cota-punto" data-position="0 0 0" tabindex="-1" aria-hidden="true"></button>
         <button slot="hotspot-cd" class="cota-punto" data-position="0 0 0" tabindex="-1" aria-hidden="true"></button>
@@ -346,18 +346,21 @@ const PLATOS = [
 ];
 // Cuando publiques la carta (por ejemplo en GitHub Pages), pega aquí su dirección.
 // Se usa solo dentro de la vista previa de Claude, donde la cámara no se puede abrir.
-const URL_PUBLICA = '';
+const URL_PUBLICA = 'https://valentksss-ui.github.io/carta-don-lucho/';
 // Formato de los modelos: '.glb' en la carta publicada. La página privada de Claude no sirve
 // archivos .glb, así que ahí van como texto (.glb.txt) y se convierten en el navegador.
 const EXT_MODELO = '.glb';
+// Sin cámara: dentro de un marco, o cuando los modelos vienen como texto (página de Claude),
+// porque el visor de RA de Android necesita descargar el .glb desde una dirección pública.
+const sinCamara = () => enMarco0 || EXT_MODELO !== '.glb';
 window.PLATOS = PLATOS;
 
 // ===== Utilidades =====
 const $ = (id) => document.getElementById(id);
 const pesos = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
 const cm = (v) => v.toLocaleString('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' cm';
-const enMarco = (() => { try { return window.top !== window.self; } catch (e) { return true; } })();
-const urlBase = () => (enMarco ? URL_PUBLICA : location.href.split('#')[0]);
+const enMarco0 = (() => { try { return window.top !== window.self; } catch (e) { return true; } })();
+const urlBase = () => (sinCamara() ? URL_PUBLICA : location.href.split('#')[0]);
 const MEDIDAS = new Map(PLATOS.map((p) => [p.id, null]));
 
 // ===== Carta =====
@@ -465,19 +468,19 @@ function mostrarAviso(texto) {
 function prepararAR() {
   const aviso = $('aviso-ar');
   aviso.hidden = true; aviso.innerHTML = '';
-  if (enMarco) {
+  if (sinCamara()) {
     // Dentro de la vista previa de Claude la cámara está bloqueada: se ofrece la carta publicada.
     visor.removeAttribute('ar');
     aviso.className = 'aviso-ar'; aviso.hidden = false;
     const t = document.createElement('span');
     if (URL_PUBLICA) {
-      t.textContent = 'Para ponerlo en tu mesa, abre la carta publicada en el celular. Esta vista previa no puede usar la cámara.';
+      t.textContent = 'Para ponerlo en tu mesa, abre la carta publicada en el celular. Desde aquí no se puede usar la cámara.';
       const a = document.createElement('a');
       a.href = URL_PUBLICA + '#' + actual.id; a.target = '_blank'; a.rel = 'noopener';
       a.textContent = 'Abrir con cámara';
       aviso.append(t, a);
     } else {
-      t.textContent = 'Esta vista previa no puede usar la cámara. Publica la carpeta «sitio» (ver README) y abre la carta desde el celular para ponerlo en tu mesa.';
+      t.textContent = 'Desde aquí no se puede usar la cámara. Publica la carpeta «sitio» (ver README) y abre la carta desde el celular para ponerlo en tu mesa.';
       aviso.append(t);
     }
   } else {
@@ -494,7 +497,7 @@ visor.addEventListener('load', () => {
   $('cota-alto').textContent = cm(s.y * 100);
   esquina = '';
   moverCotas();
-  if (!enMarco && !visor.canActivateAR) {
+  if (!sinCamara() && !visor.canActivateAR) {
     const aviso = $('aviso-ar');
     aviso.className = 'aviso-ar'; aviso.hidden = false;
     aviso.textContent = 'Este navegador no puede abrir la cámara en 3D. En Android usa Chrome (con «Servicios de Google Play para RA» instalado); en iPhone, Safari. Igual puedes girar el plato aquí.';
