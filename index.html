@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141d1a" media="(prefers-color-scheme: dark)">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Carta 3D Don Lucho</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Carta de Picada Don Lucho: mira cada plato en 3D y ponlo sobre tu mesa en tamaño real con la cámara.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: carta de picada en una columna (dos en tablet); la ficha del plato se abre encima, con el 3D arriba y la regla de medidas abajo.
+   Motivo: la línea azul del ala del plato de loza. Claro = loza; oscuro = pizarra de tiza. */
+:root {
+  --fondo: #f6f5f1;
+  --superficie: #ffffff;
+  --hundido: #ebe9e2;
+  --tinta: #1a2233;
+  --suave: #5a6172;
+  --linea: #d9d6cc;
+  --cobalto: #23468e;
+  --cobalto-texto: #ffffff;
+  --aji: #b8371f;
+  --sombra: 0 1px 2px rgb(26 34 51 / 0.08), 0 6px 18px rgb(26 34 51 / 0.07);
+  --f-letrero: "Alfa Slab One", "Rockwell", "Roboto Slab", Georgia, serif;
+  --f-texto: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-medida: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fondo: #141d1a; --superficie: #1b2723; --hundido: #22302b; --tinta: #eef0e7; --suave: #a7b2a7;
+    --linea: #33433d; --cobalto: #8fb0ff; --cobalto-texto: #0f1a33; --aji: #ff8f73;
+    --sombra: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 22px rgb(0 0 0 / 0.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --fondo: #141d1a; --superficie: #1b2723; --hundido: #22302b; --tinta: #eef0e7; --suave: #a7b2a7;
+  --linea: #33433d; --cobalto: #8fb0ff; --cobalto-texto: #0f1a33; --aji: #ff8f73;
+  --sombra: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 22px rgb(0 0 0 / 0.25);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html.fijo, html.fijo body { overflow: hidden; }
+body {
+  margin: 0; background: var(--fondo); color: var(--tinta);
+  font: 400 1rem/1.5 var(--f-texto);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--cobalto); outline-offset: 2px; border-radius: 6px; }
+.envoltura {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Encabezado tipo letrero */
+.letrero { padding-block: 28px 18px; display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; }
+.letrero h1 {
+  font: 400 clamp(2rem, 8vw, 3.4rem)/0.95 var(--f-letrero); margin: 0; letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+.ala { display: block; width: 7.5rem; height: 7px; margin-top: 12px; border-block: 2px solid var(--cobalto); }
+.bajada { margin: 10px 0 0; color: var(--suave); font-size: 0.95rem; }
+.bajada b { color: var(--tinta); font-weight: 600; }
+.btn-qr {
+  flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px;
+  border: 1.5px solid var(--linea); background: var(--superficie); cursor: pointer; font-weight: 600; font-size: 0.9rem;
+}
+.btn-qr svg { width: 18px; height: 18px; }
+
+.como {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 4px 0 26px; padding: 0; list-style: none;
+  counter-reset: paso;
+}
+.como li {
+  counter-increment: paso; background: var(--hundido); border-radius: 12px; padding: 12px; font-size: 0.86rem; line-height: 1.35;
+  min-width: 0;
+}
+.como li::before {
+  content: counter(paso); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--cobalto); color: var(--cobalto-texto); font: 600 0.8rem/1 var(--f-medida); margin-bottom: 8px;
+}
+@media (max-width: 520px) { .como { grid-template-columns: 1fr; } .como li { display: flex; gap: 10px; align-items: center; } .como li::before { margin: 0; flex: none; } .como li > span { min-width: 0; } }
+
+/* Carta */
+.seccion { margin-bottom: 26px; }
+.seccion h2 {
+  font: 600 0.78rem/1 var(--f-texto); text-transform: uppercase; letter-spacing: 0.14em; color: var(--suave);
+  margin: 0 0 10px; display: flex; align-items: center; gap: 12px;
+}
+.seccion h2::after { content: ""; flex: 1; border-top: 1px solid var(--linea); }
+.lista { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 760px) { .lista { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.item {
+  display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 14px; align-items: center; text-align: left;
+  background: var(--superficie); border: 1px solid var(--linea); border-radius: 16px; padding: 10px 14px 10px 10px;
+  cursor: pointer; width: 100%; transition: transform .15s ease, box-shadow .15s ease;
+}
+.item:hover { box-shadow: var(--sombra); transform: translateY(-1px); }
+.item:active { transform: scale(0.99); }
+.foto { width: 104px; height: 104px; border-radius: 50%; background: var(--hundido); display: grid; place-items: center; overflow: hidden; }
+.foto img { width: 94%; height: 94%; object-fit: contain; }
+.item h3 { margin: 0; font-size: 1.08rem; line-height: 1.2; font-weight: 800; letter-spacing: -0.005em; }
+.item p { margin: 4px 0 8px; color: var(--suave); font-size: 0.88rem; line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.precio { font: 600 1rem/1 var(--f-medida); font-variant-numeric: tabular-nums; }
+.chip {
+  font: 400 0.74rem/1 var(--f-medida); padding: 5px 7px; border-radius: 6px; background: var(--hundido); color: var(--suave);
+  white-space: nowrap;
+}
+.chip.tres-d { background: var(--cobalto); color: var(--cobalto-texto); font-weight: 600; }
+.pie { color: var(--suave); font-size: 0.8rem; padding-block: 8px 34px; border-top: 1px solid var(--linea); margin-top: 8px; }
+
+/* Ficha del plato */
+.ficha { position: fixed; inset: 0; z-index: 20; background: var(--fondo); overflow-y: auto; overscroll-behavior: contain; }
+.barra {
+  position: sticky; top: 0; z-index: 3; background: var(--fondo);
+  padding-top: env(safe-area-inset-top, 0px); border-bottom: 1px solid var(--linea);
+}
+.barra .envoltura { display: flex; align-items: center; gap: 10px; min-height: 56px; }
+.volver {
+  display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 8px 10px 8px 4px; cursor: pointer;
+  font-weight: 600; border-radius: 10px;
+}
+.volver svg { width: 20px; height: 20px; }
+.barra-titulo { font: 400 1.05rem/1.1 var(--f-letrero); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.cuerpo {
+  display: grid; grid-template-columns: 1fr; gap: 18px;
+  padding-block: 14px calc(28px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 900px) { .cuerpo { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; } .visor-caja { position: sticky; top: 72px; } }
+
+.visor-caja { position: relative; border-radius: 22px; overflow: hidden; background: radial-gradient(120% 90% at 50% 30%, var(--superficie), var(--hundido)); border: 1px solid var(--linea); }
+model-viewer {
+  display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; max-height: 68vh; max-width: 100%;
+  --poster-color: transparent; --progress-bar-color: transparent; background: transparent;
+}
+.carga { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: transparent; z-index: 2; }
+.carga i { display: block; height: 100%; width: 0; background: var(--cobalto); transition: width .2s; }
+.controles {
+  position: absolute; left: 12px; right: 12px; top: 12px; display: flex; gap: 8px; align-items: center; justify-content: space-between; z-index: 2;
+  pointer-events: none;
+}
+.controles > * { pointer-events: auto; }
+.toggle {
+  border: 1px solid var(--linea); background: var(--superficie); border-radius: 999px; padding: 9px 13px; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; display: inline-flex; gap: 7px; align-items: center;
+}
+.toggle[aria-pressed="true"] { border-color: var(--cobalto); color: var(--cobalto); }
+.toggle svg { width: 17px; height: 17px; }
+.btn-ar {
+  border: 0; border-radius: 999px; padding: 13px 18px; background: var(--cobalto); color: var(--cobalto-texto); font-weight: 800;
+  font-size: 1rem; display: inline-flex; align-items: center; gap: 9px; cursor: pointer; box-shadow: var(--sombra);
+}
+.btn-ar svg { width: 22px; height: 22px; }
+.aviso-ar {
+  margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--hundido); font-size: 0.9rem; line-height: 1.4;
+  display: grid; gap: 10px;
+}
+.aviso-ar a, .boton-sec {
+  justify-self: start; display: inline-flex; gap: 8px; align-items: center; padding: 10px 14px; border-radius: 999px; font-weight: 700;
+  background: var(--cobalto); color: var(--cobalto-texto); text-decoration: none; border: 0; cursor: pointer; font-size: 0.92rem;
+}
+.boton-sec { background: var(--superficie); color: var(--tinta); border: 1.5px solid var(--linea); }
+
+/* Cotas sobre el modelo */
+.cota-punto { display: block; width: 7px; height: 7px; border: 0; border-radius: 50%; background: var(--cobalto); padding: 0; pointer-events: none; }
+.cota {
+  border: 0; pointer-events: none; padding: 4px 7px; border-radius: 6px; background: var(--cobalto); color: var(--cobalto-texto);
+  font: 600 0.78rem/1 var(--f-medida); white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.lineas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.lineas line { stroke: var(--cobalto); stroke-width: 2; stroke-dasharray: 5 4; }
+model-viewer.sin-cotas .lineas, model-viewer.sin-cotas [slot^="hotspot-"] { display: none; }
+
+.info h2 { font: 400 clamp(1.7rem, 6vw, 2.4rem)/1.02 var(--f-letrero); margin: 0; text-wrap: balance; }
+.info .linea-precio { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 10px 0 6px; }
+.info .precio { font-size: 1.35rem; }
+.info .desc { margin: 0 0 16px; font-size: 1.02rem; max-width: 60ch; }
+.datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 18px; }
+.dato { background: var(--superficie); border: 1px solid var(--linea); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.dato dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--suave); margin-bottom: 4px; }
+.dato dd { margin: 0; font: 600 1rem/1.2 var(--f-medida); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.regla-caja { background: var(--superficie); border: 1px solid var(--linea); border-radius: 14px; padding: 12px 14px 10px; margin-bottom: 18px; }
+.regla-caja h3, .pasos h3 { margin: 0 0 6px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--suave); font-weight: 600; }
+.regla { width: 100%; height: auto; display: block; overflow: visible; }
+.regla text { font: 400 10px var(--f-medida); fill: var(--suave); }
+.regla .t-plato { fill: var(--tinta); font-weight: 600; }
+.regla .tick { stroke: var(--suave); stroke-width: 1; }
+.regla .base { stroke: var(--tinta); stroke-width: 1.2; }
+.regla .bar-plato { fill: var(--cobalto); }
+.regla .bar-cel { fill: var(--hundido); stroke: var(--linea); }
+.regla-nota { margin: 6px 0 0; font-size: 0.85rem; color: var(--suave); }
+.pasos ol { margin: 0; padding-left: 1.2rem; display: grid; gap: 6px; font-size: 0.92rem; }
+.pasos { margin-bottom: 8px; }
+.ingredientes { font-size: 0.9rem; color: var(--suave); margin: 0 0 16px; }
+
+/* Diálogo QR */
+.velo { position: fixed; inset: 0; z-index: 40; background: rgb(10 14 20 / 0.55); display: grid; place-items: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.dialogo { background: var(--superficie); color: var(--tinta); border-radius: 20px; padding: 20px; width: min(360px, 100%); display: grid; gap: 12px; text-align: center; box-shadow: var(--sombra); }
+.dialogo h2 { font: 400 1.4rem/1.1 var(--f-letrero); margin: 0; }
+.dialogo p { margin: 0; color: var(--suave); font-size: 0.92rem; }
+.qr { background: #ffffff; border-radius: 12px; padding: 12px; justify-self: center; width: min(260px, 100%); }
+.qr svg { display: block; width: 100%; height: auto; }
+.url { font: 400 0.78rem/1.3 var(--f-medida); overflow-wrap: anywhere; color: var(--suave); user-select: all; }
+@media (prefers-reduced-motion: reduce) { .item, .carga i { transition: none; } }
+</style>
+</head>
+<body>
+<header class="envoltura letrero">
+  <div>
+    <h1>Picada<br>Don Lucho</h1>
+    <span class="ala" aria-hidden="true"></span>
+    <p class="bajada"><b>Carta en 3D</b> · Ñuñoa · Mira cada plato en su tamaño real, sobre tu mesa.</p>
+  </div>
+  <button class="btn-qr" id="abrir-qr" type="button" aria-label="Mostrar código QR de la carta">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>
+    QR
+  </button>
+</header>
+
+<main class="envoltura" id="carta">
+  <ol class="como" aria-label="Cómo funciona">
+    <li><span>Elige un plato y gíralo con el dedo para verlo por todos lados.</span></li>
+    <li><span>Toca <b>Ver en mi mesa</b> y apunta la cámara a la mesa.</span></li>
+    <li><span>El plato aparece en su tamaño real: camina alrededor y compara.</span></li>
+  </ol>
+  <div id="secciones"></div>
+  <p class="pie">Modelos 3D de referencia hechos a la medida de cada plato. La porción servida puede variar un poco. Precios en pesos chilenos, IVA incluido.</p>
+</main>
+
+<section class="ficha" id="ficha" hidden aria-labelledby="ficha-titulo" role="dialog" aria-modal="true">
+  <div class="barra">
+    <div class="envoltura">
+      <button class="volver" id="volver" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        Carta
+      </button>
+      <span class="barra-titulo" id="barra-titulo"></span>
+    </div>
+  </div>
+  <div class="envoltura cuerpo">
+    <div class="visor-caja">
+      <div class="carga" aria-hidden="true"><i id="carga"></i></div>
+      <model-viewer id="visor" camera-controls touch-action="pan-y" interaction-prompt="auto" shadow-intensity="1" shadow-softness="0.75"
+        environment-image="neutral" exposure="1.05" camera-orbit="20deg 58deg 140%" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 86deg 200%"
+        ar-modes="webxr scene-viewer quick-look" ar-scale="fixed" ar-placement="floor" xr-environment>
+        <button slot="hotspot-c0" class="cota-punto" data-position="0 0 0" tabindex="-1" aria-hidden="true"></button>
+        <button slot="hotspot-cw" class="cota-punto" data-position="0 0 0" tabindex="-1" aria-hidden="true"></button>
+        <button slot="hotspot-cd" class="cota-punto" data-position="0 0 0" tabindex="-1" aria-hidden="true"></button>
+        <button slot="hotspot-ch" class="cota-punto" data-position="0 0 0" tabindex="-1" aria-hidden="true"></button>
+        <button slot="hotspot-lw" class="cota" data-position="0 0 0" tabindex="-1" id="cota-ancho"></button>
+        <button slot="hotspot-ld" class="cota" data-position="0 0 0" tabindex="-1" id="cota-fondo"></button>
+        <button slot="hotspot-lh" class="cota" data-position="0 0 0" tabindex="-1" id="cota-alto"></button>
+        <svg class="lineas" id="lineas" aria-hidden="true"><line id="l-ancho"/><line id="l-fondo"/><line id="l-alto"/></svg>
+        <button slot="ar-button" class="btn-ar" id="btn-ar" type="button" style="position:absolute;right:12px;bottom:12px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>
+          Ver en mi mesa
+        </button>
+      </model-viewer>
+      <div class="controles">
+        <button class="toggle" id="toggle-cotas" type="button" aria-pressed="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg>
+          Medidas
+        </button>
+      </div>
+    </div>
+    <div class="info">
+      <h2 id="ficha-titulo"></h2>
+      <div class="linea-precio"><span class="precio" id="ficha-precio"></span><span class="chip" id="ficha-porcion"></span></div>
+      <p class="desc" id="ficha-desc"></p>
+      <p class="ingredientes" id="ficha-ingredientes"></p>
+      <div id="aviso-ar" hidden></div>
+      <dl class="datos">
+        <div class="dato"><dt>Ancho</dt><dd id="d-ancho"></dd></div>
+        <div class="dato"><dt>Fondo</dt><dd id="d-fondo"></dd></div>
+        <div class="dato"><dt>Alto</dt><dd id="d-alto"></dd></div>
+      </dl>
+      <div class="regla-caja">
+        <h3>Para hacerse una idea</h3>
+        <svg class="regla" id="regla" viewBox="0 0 340 92" role="img" aria-labelledby="regla-nota"></svg>
+        <p class="regla-nota" id="regla-nota"></p>
+      </div>
+      <div class="pasos">
+        <h3>Verlo en tu mesa</h3>
+        <ol>
+          <li>Toca <b>Ver en mi mesa</b> y permite el uso de la cámara.</li>
+          <li>Apunta a la mesa y mueve el celular despacio hasta que aparezca el plato.</li>
+          <li>Se queda fijo en su tamaño real: no se puede agrandar ni achicar.</li>
+        </ol>
+      </div>
+      <p style="margin:14px 0 0"><button class="boton-sec" id="qr-plato" type="button">QR de este plato</button></p>
+    </div>
+  </div>
+</section>
+
+<div class="velo" id="velo" hidden>
+  <div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="qr-titulo">
+    <h2 id="qr-titulo">Escanea con tu celular</h2>
+    <p id="qr-texto"></p>
+    <div class="qr" id="qr"></div>
+    <div class="url" id="qr-url"></div>
+    <button class="boton-sec" id="cerrar-qr" type="button" style="justify-self:center">Cerrar</button>
+  </div>
+</div>
+
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.3.1/dist/model-viewer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+// ===== Datos de la carta (edítalos aquí) =====
+// medidas = caja completa del modelo 3D (plato incluido), en cm. Las prueba herramientas/probar-sitio.mjs.
+const PLATOS = [
+  { id: 'milanesa-pure', cat: 'Platos de fondo', nombre: 'Milanesa con puré', precio: 8900,
+    desc: 'Milanesa de vacuno apanada en el momento, con puré casero, mantequilla y un gajo de limón.',
+    ingredientes: 'Vacuno, pan rallado, huevo, papa, leche, mantequilla, perejil, limón.',
+    porcion: '1 persona', plato: 'Plato de 28 cm', medidas: { ancho: 28.1, fondo: 28.1, alto: 4.9 } },
+  { id: 'lomo-pobre', cat: 'Platos de fondo', nombre: 'Lomo a lo pobre', precio: 12900,
+    desc: 'Lomo a la plancha con papas fritas, cebolla frita y dos huevos fritos. Para llegar con hambre.',
+    ingredientes: 'Lomo vetado, papa, cebolla, huevo.',
+    porcion: '1 persona', plato: 'Plato de 30 cm', medidas: { ancho: 30.1, fondo: 30.1, alto: 4.5 } },
+  { id: 'pastel-choclo', cat: 'Platos de fondo', nombre: 'Pastel de choclo', precio: 8500,
+    desc: 'En paila de greda, con pino, pollo, huevo y aceituna, gratinado con azúcar.',
+    ingredientes: 'Choclo, albahaca, carne molida, cebolla, pollo, huevo, aceituna, azúcar.',
+    porcion: '1 persona', plato: 'Paila de 18 cm', medidas: { ancho: 22.1, fondo: 22.1, alto: 8.4 } },
+  { id: 'completo-italiano', cat: 'Al paso', nombre: 'Completo italiano', precio: 3900,
+    desc: 'Vienesa en pan de completo con tomate picado, palta molida y mayo casera.',
+    ingredientes: 'Pan, vienesa, tomate, palta, mayonesa.',
+    porcion: '1 unidad', plato: 'Pan de 19 cm', medidas: { ancho: 30.1, fondo: 15.7, alto: 8.1 } },
+  { id: 'empanada-pino', cat: 'Al paso', nombre: 'Empanada de pino', precio: 3200,
+    desc: 'De horno, con pino de carne, cebolla, huevo, aceituna y pasas.',
+    ingredientes: 'Masa de harina, carne, cebolla, huevo, aceituna, pasas.',
+    porcion: '1 unidad', plato: 'Empanada de 16 cm', medidas: { ancho: 22.1, fondo: 22.1, alto: 4.7 } },
+  { id: 'mote-huesillo', cat: 'Para el calor', nombre: 'Mote con huesillo', precio: 2800,
+    desc: 'Jugo de huesillo bien helado con mote de trigo y dos huesillos.',
+    ingredientes: 'Huesillo, mote de trigo, azúcar, canela.',
+    porcion: 'Vaso de 450 ml', plato: 'Vaso de 15 cm', medidas: { ancho: 8.3, fondo: 8.3, alto: 15.0 } },
+];
+// Cuando publiques la carta (por ejemplo en GitHub Pages), pega aquí su dirección.
+// Se usa solo dentro de la vista previa de Claude, donde la cámara no se puede abrir.
+const URL_PUBLICA = '';
+// Formato de los modelos: '.glb' en la carta publicada. La página privada de Claude no sirve
+// archivos .glb, así que ahí van como texto (.glb.txt) y se convierten en el navegador.
+const EXT_MODELO = '.glb';
+window.PLATOS = PLATOS;
+
+// ===== Utilidades =====
+const $ = (id) => document.getElementById(id);
+const pesos = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
+const cm = (v) => v.toLocaleString('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' cm';
+const enMarco = (() => { try { return window.top !== window.self; } catch (e) { return true; } })();
+const urlBase = () => (enMarco ? URL_PUBLICA : location.href.split('#')[0]);
+const MEDIDAS = new Map(PLATOS.map((p) => [p.id, null]));
+
+// ===== Carta =====
+function pintarCarta() {
+  const cont = $('secciones');
+  const cats = [...new Set(PLATOS.map((p) => p.cat))];
+  for (const cat of cats) {
+    const sec = document.createElement('section');
+    sec.className = 'seccion';
+    const h = document.createElement('h2'); h.textContent = cat; sec.append(h);
+    const lista = document.createElement('div'); lista.className = 'lista';
+    for (const p of PLATOS.filter((x) => x.cat === cat)) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'item'; b.dataset.id = p.id;
+      b.setAttribute('aria-label', `${p.nombre}, ${pesos.format(p.precio)}. Ver en 3D`);
+      b.innerHTML = `<span class="foto"><img alt="" loading="lazy" width="112" height="112"></span>
+        <span><h3></h3><p></p><span class="meta"><span class="precio"></span><span class="chip tres-d">3D</span><span class="chip"></span></span></span>`;
+      b.querySelector('img').src = `img/${p.id}.webp`;
+      b.querySelector('h3').textContent = p.nombre;
+      b.querySelector('p').textContent = p.desc;
+      b.querySelector('.precio').textContent = pesos.format(p.precio);
+      b.querySelector('.chip:not(.tres-d)').textContent = `${fmtCorto(p.medidas.ancho)} × ${fmtCorto(p.medidas.fondo)} × ${fmtCorto(p.medidas.alto)} cm`;
+      b.querySelector('.chip:not(.tres-d)').title = 'Ancho × fondo × alto';
+      b.addEventListener('click', () => abrir(p.id));
+      lista.append(b);
+    }
+    sec.append(lista); cont.append(sec);
+  }
+}
+const fmtCorto = (v) => Math.round(v).toString();
+
+// ===== Ficha =====
+const visor = $('visor');
+let actual = null;
+let caja = null;      // { c: centro, s: tamaño } en metros
+let esquina = '';
+
+function abrir(id, desdeHash) {
+  const p = PLATOS.find((x) => x.id === id);
+  if (!p) return;
+  actual = p; caja = null; esquina = '';
+  $('barra-titulo').textContent = p.nombre;
+  $('ficha-titulo').textContent = p.nombre;
+  $('ficha-precio').textContent = pesos.format(p.precio);
+  $('ficha-porcion').textContent = `${p.porcion} · ${p.plato}`;
+  $('ficha-desc').textContent = p.desc;
+  $('ficha-ingredientes').textContent = 'Lleva: ' + p.ingredientes;
+  $('d-ancho').textContent = cm(p.medidas.ancho);
+  $('d-fondo').textContent = cm(p.medidas.fondo);
+  $('d-alto').textContent = cm(p.medidas.alto);
+  pintarRegla(p);
+  visor.alt = `Modelo 3D de ${p.nombre} en tamaño real`;
+  visor.poster = `img/${p.id}.webp`;
+  if (EXT_MODELO !== '.glb') visor.removeAttribute('src'); // que no se vea el plato anterior mientras carga
+  cargarModelo(p.id).then((url) => { if (actual && actual.id === p.id) visor.src = url; })
+    .catch(() => mostrarAviso('No se pudo cargar el modelo 3D. Revisa la conexión y vuelve a abrir el plato.'));
+  $('carga').style.width = '0';
+  $('ficha').hidden = false;
+  $('ficha').scrollTop = 0;
+  document.documentElement.classList.add('fijo');
+  prepararAR();
+  if (!desdeHash) { try { history.pushState({ plato: id }, '', '#' + id); } catch (e) { /* vista previa */ } }
+  $('volver').focus({ preventScroll: true });
+}
+function cerrar(desdeHash) {
+  $('ficha').hidden = true;
+  document.documentElement.classList.remove('fijo');
+  const id = actual && actual.id; actual = null;
+  if (!desdeHash) { try { history.pushState({}, '', location.pathname + location.search); } catch (e) { /* vista previa */ } }
+  const item = id && document.querySelector(`.item[data-id="${id}"]`);
+  if (item) item.focus({ preventScroll: false });
+}
+$('volver').addEventListener('click', () => cerrar());
+window.addEventListener('popstate', () => rutear(true));
+window.addEventListener('hashchange', () => rutear(true));
+function rutear(desdeHash) {
+  const id = location.hash.slice(1);
+  if (id && PLATOS.some((p) => p.id === id)) { if (!actual || actual.id !== id) abrir(id, true); }
+  else if (actual) cerrar(true);
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('velo').hidden) cerrarQR(); else if (actual) cerrar();
+});
+
+const URLS_MODELO = new Map();
+async function cargarModelo(id) {
+  if (EXT_MODELO === '.glb') return `modelos/${id}.glb`;
+  if (URLS_MODELO.has(id)) return URLS_MODELO.get(id);
+  const r = await fetch(`modelos/${id}${EXT_MODELO}`);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const bin = atob((await r.text()).trim());
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'model/gltf-binary' }));
+  URLS_MODELO.set(id, url);
+  return url;
+}
+function mostrarAviso(texto) {
+  const aviso = $('aviso-ar');
+  aviso.className = 'aviso-ar'; aviso.hidden = false; aviso.textContent = texto;
+}
+
+// ===== Realidad aumentada =====
+function prepararAR() {
+  const aviso = $('aviso-ar');
+  aviso.hidden = true; aviso.innerHTML = '';
+  if (enMarco) {
+    // Dentro de la vista previa de Claude la cámara está bloqueada: se ofrece la carta publicada.
+    visor.removeAttribute('ar');
+    aviso.className = 'aviso-ar'; aviso.hidden = false;
+    const t = document.createElement('span');
+    if (URL_PUBLICA) {
+      t.textContent = 'Para ponerlo en tu mesa, abre la carta publicada en el celular. Esta vista previa no puede usar la cámara.';
+      const a = document.createElement('a');
+      a.href = URL_PUBLICA + '#' + actual.id; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = 'Abrir con cámara';
+      aviso.append(t, a);
+    } else {
+      t.textContent = 'Esta vista previa no puede usar la cámara. Publica la carpeta «sitio» (ver README) y abre la carta desde el celular para ponerlo en tu mesa.';
+      aviso.append(t);
+    }
+  } else {
+    visor.setAttribute('ar', '');
+  }
+}
+visor.addEventListener('load', () => {
+  // Caja real del modelo, en metros
+  const s = visor.getDimensions(), c = visor.getBoundingBoxCenter();
+  caja = { s, c };
+  if (actual) MEDIDAS.set(actual.id, { ancho: s.x * 100, fondo: s.z * 100, alto: s.y * 100 });
+  $('cota-ancho').textContent = cm(s.x * 100);
+  $('cota-fondo').textContent = cm(s.z * 100);
+  $('cota-alto').textContent = cm(s.y * 100);
+  esquina = '';
+  moverCotas();
+  if (!enMarco && !visor.canActivateAR) {
+    const aviso = $('aviso-ar');
+    aviso.className = 'aviso-ar'; aviso.hidden = false;
+    aviso.textContent = 'Este navegador no puede abrir la cámara en 3D. En Android usa Chrome (con «Servicios de Google Play para RA» instalado); en iPhone, Safari. Igual puedes girar el plato aquí.';
+  }
+});
+visor.addEventListener('progress', (e) => {
+  const p = e.detail.totalProgress;
+  $('carga').style.width = (p * 100).toFixed(0) + '%';
+  if (p >= 1) setTimeout(() => { $('carga').style.width = '0'; }, 400);
+});
+visor.addEventListener('ar-status', (e) => {
+  if (e.detail.status === 'failed') {
+    const aviso = $('aviso-ar');
+    aviso.className = 'aviso-ar'; aviso.hidden = false;
+    aviso.textContent = 'No se pudo abrir la cámara. Revisa que Chrome tenga permiso de cámara y que el celular tenga «Servicios de Google Play para RA». Mientras, puedes girar el plato aquí.';
+  }
+});
+visor.addEventListener('error', () => {
+  const aviso = $('aviso-ar');
+  aviso.className = 'aviso-ar'; aviso.hidden = false;
+  aviso.textContent = 'No se pudo cargar el modelo 3D. Revisa la conexión y vuelve a abrir el plato.';
+});
+
+// ===== Cotas (líneas de medida sobre el modelo) =====
+function pos(v) { return `${v[0]}m ${v[1]}m ${v[2]}m`; }
+function moverCotas() {
+  if (!caja) return;
+  const orb = visor.getCameraOrbit();
+  const sx = Math.sin(orb.theta) >= 0 ? 1 : -1, sz = Math.cos(orb.theta) >= 0 ? 1 : -1;
+  const clave = sx + ',' + sz;
+  if (clave !== esquina) {
+    esquina = clave;
+    const { s, c } = caja;
+    const x0 = c.x + sx * s.x / 2, x1 = c.x - sx * s.x / 2, y0 = c.y - s.y / 2, y1 = c.y + s.y / 2, z0 = c.z + sz * s.z / 2, z1 = c.z - sz * s.z / 2;
+    const m = Math.max(s.x, s.z) * 0.07;
+    visor.updateHotspot({ name: 'hotspot-c0', position: pos([x0, y0, z0]) });
+    visor.updateHotspot({ name: 'hotspot-cw', position: pos([x1, y0, z0]) });
+    visor.updateHotspot({ name: 'hotspot-cd', position: pos([x0, y0, z1]) });
+    visor.updateHotspot({ name: 'hotspot-ch', position: pos([x0, y1, z0]) });
+    visor.updateHotspot({ name: 'hotspot-lw', position: pos([c.x, y0, z0 + sz * m]) });
+    visor.updateHotspot({ name: 'hotspot-ld', position: pos([x0 + sx * m, y0, c.z]) });
+    visor.updateHotspot({ name: 'hotspot-lh', position: pos([x0 + sx * m * 0.5, y1 + Math.max(0.012, s.y * 0.12), z0 + sz * m * 0.5]) });
+  }
+  requestAnimationFrame(trazarCotas);
+}
+function linea(el, a, b) {
+  const h1 = visor.queryHotspot(a), h2 = visor.queryHotspot(b);
+  if (!h1 || !h2) return;
+  el.setAttribute('x1', h1.canvasPosition.x); el.setAttribute('y1', h1.canvasPosition.y);
+  el.setAttribute('x2', h2.canvasPosition.x); el.setAttribute('y2', h2.canvasPosition.y);
+}
+function trazarCotas() {
+  linea($('l-ancho'), 'hotspot-c0', 'hotspot-cw');
+  linea($('l-fondo'), 'hotspot-c0', 'hotspot-cd');
+  linea($('l-alto'), 'hotspot-c0', 'hotspot-ch');
+}
+visor.addEventListener('camera-change', moverCotas);
+$('toggle-cotas').addEventListener('click', (e) => {
+  const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+  e.currentTarget.setAttribute('aria-pressed', String(on));
+  visor.classList.toggle('sin-cotas', !on);
+  if (on) moverCotas();
+});
+
+// ===== Regla a escala (cm) =====
+function pintarRegla(p) {
+  const svg = $('regla');
+  const L = 32, x0 = 10, ancho = 320, k = ancho / L; // 1 cm = k unidades
+  const largo = Math.max(p.medidas.ancho, p.medidas.fondo);
+  const esVaso = p.medidas.alto > largo;
+  const med = esVaso ? p.medidas.alto : largo;
+  const etiqueta = esVaso ? 'alto' : 'largo';
+  let h = '';
+  h += `<rect class="bar-cel" x="${x0}" y="10" width="${15 * k}" height="16" rx="4"/>`;
+  h += `<text x="${x0 + 6}" y="22">celular ≈ 15 cm</text>`;
+  h += `<rect class="bar-plato" x="${x0}" y="32" width="${med * k}" height="16" rx="4"/>`;
+  h += `<text class="t-plato" x="${Math.min(x0 + med * k + 6, 250)}" y="44">${p.nombre.toLowerCase()} · ${cm(med)}</text>`;
+  h += `<line class="base" x1="${x0}" y1="58" x2="${x0 + ancho}" y2="58"/>`;
+  for (let i = 0; i <= L; i++) {
+    const x = x0 + i * k, alto = i % 5 === 0 ? 10 : 5;
+    h += `<line class="tick" x1="${x}" y1="58" x2="${x}" y2="${58 + alto}"/>`;
+    if (i % 5 === 0) h += `<text x="${x}" y="80" text-anchor="middle">${i}</text>`;
+  }
+  h += `<text x="${x0 + ancho}" y="91" text-anchor="end">cm</text>`;
+  svg.innerHTML = h;
+  // si la etiqueta no cabe a la derecha, va dentro de la barra
+  const t = svg.querySelector('.t-plato');
+  if (med * k > 200) { t.setAttribute('x', x0 + 8); t.style.fill = 'var(--cobalto-texto)'; }
+  const n = med / 15;
+  const comp = n < 0.8 ? 'más corto que un celular' : n < 1.2 ? 'más o menos lo que mide un celular' : `${n.toLocaleString('es-CL', { maximumFractionDigits: 1 })} celulares puestos en fila`;
+  $('regla-nota').textContent = `Su ${etiqueta} es de ${cm(med)}: ${comp}.`;
+}
+
+// ===== QR =====
+function mostrarQR(hash) {
+  const base = urlBase();
+  $('velo').hidden = false;
+  const qr = $('qr');
+  if (!base) {
+    $('qr-texto').textContent = 'El QR aparece cuando la carta está publicada. Pega su dirección en URL_PUBLICA (ver README).';
+    qr.hidden = true; $('qr-url').textContent = '';
+  } else if (typeof qrcode !== 'function') {
+    $('qr-texto').textContent = 'No se pudo generar el QR. Comparte esta dirección:';
+    qr.hidden = true; $('qr-url').textContent = base + (hash ? '#' + hash : '');
+  } else {
+    const url = base + (hash ? '#' + hash : '');
+    const q = qrcode(0, 'M'); q.addData(url); q.make();
+    qr.innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+    qr.hidden = false;
+    $('qr-texto').textContent = hash ? 'Abre este plato directo en el celular y ponlo en la mesa.' : 'Abre la carta en tu celular para ver los platos en tu mesa.';
+    $('qr-url').textContent = url;
+  }
+  $('cerrar-qr').focus();
+}
+function cerrarQR() { $('velo').hidden = true; }
+$('abrir-qr').addEventListener('click', () => mostrarQR(''));
+$('qr-plato').addEventListener('click', () => actual && mostrarQR(actual.id));
+$('cerrar-qr').addEventListener('click', cerrarQR);
+$('velo').addEventListener('click', (e) => { if (e.target === e.currentTarget) cerrarQR(); });
+
+pintarCarta();
+rutear(true);
+</script>
+</body>
+</html>
