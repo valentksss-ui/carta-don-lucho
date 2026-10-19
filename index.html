@@ -448,7 +448,7 @@ document.addEventListener('keydown', (e) => {
 
 const URLS_MODELO = new Map();
 async function cargarModelo(id) {
-  if (EXT_MODELO === '.glb') return `modelos/${id}.glb`;
+  if (EXT_MODELO === '.glb') return `modelos/${id}.glb?v=2`; // ?v= obliga a bajar la versión nueva
   if (URLS_MODELO.has(id)) return URLS_MODELO.get(id);
   const r = await fetch(`modelos/${id}${EXT_MODELO}`);
   if (!r.ok) throw new Error('HTTP ' + r.status);
